@@ -6,15 +6,16 @@
         "strictNullChecks": true, // enable strict null checks as a best practice
         "module": "es6", // specifiy module code generation
         "jsx": "react", // use typescript to transpile jsx to js
-        "target": "es5", // specify ECMAScript target version
+        "target": "es2016", // specify ECMAScript target version
         "allowJs": true, // allow a partial TypeScript and JavaScript codebase  
         "noImplicitAny": true, // disallow implicit any type
         "types": [
             "jquery"
         ],
         "lib": [
-            "es2015",
-            "dom"
+            "es2017",
+            "dom",
+            "scripthost"
         ]
     },
     "include": [

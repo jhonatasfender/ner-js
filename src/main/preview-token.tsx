@@ -1,12 +1,15 @@
+import hljs from 'highlight.js';
 import * as $ from "jquery";
 import * as React from "react";
-import { SpacyParse, Token } from "./main-interface";
-import hljs from 'highlight.js';
+import { colorHexRandom, contrast } from "../utility/colors-random";
+import { Entity, SpacyParse, Token } from "./main-interface";
 
 interface PreviewTokenInterface {
-    divHover: any,
+    divHover?: JSX.Element | null,
+    modal?: JSX.Element | undefined,
     view: boolean,
-    html?: any
+    html?: any,
+    el: JSX.Element[]
 }
 
 interface PreviewTokenPropsInterface {
@@ -16,15 +19,17 @@ interface PreviewTokenPropsInterface {
 export class PreviewToken extends React.Component<PreviewTokenPropsInterface | any, PreviewTokenInterface> {
     constructor(props: {}) {
         super(props);
-        console.log(this.props.nlp)
         this.state = {
-            divHover: null,
-            view: false
+            view: false,
+            el: []
         };
 
         this.handleMouseOut = this.handleMouseOut.bind(this);
         this.handleMouseIn = this.handleMouseIn.bind(this);
         this.handleClickChangeView = this.handleClickChangeView.bind(this);
+        this.handleClickModal = this.handleClickModal.bind(this);
+
+        this.init()
     }
 
     private centerInViewport(el: any) {
@@ -49,7 +54,7 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
     }
 
     private getTextWithProperties() {
-        return `\n\t\t"${this.props.nlp.doc.text}",\n\t\t{\n\t\t\t'entities': [\n\t\t\t\t(7, 17, "DATE")\n\t\t\t]\n\t\t}`
+        return `\n\t\t"${this.nlp.doc.text}",\n\t\t{\n\t\t\t'entities': [\n\t\t\t\t(7, 17, "DATE")\n\t\t\t]\n\t\t}`
     }
 
     private handleClickChangeView() {
@@ -59,6 +64,36 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
             view: !this.state.view,
             html: highlight.value
         })
+    }
+
+    private handleClickModal(event: React.MouseEvent<HTMLDivElement>, token: Token) {
+        const modal = <div className="modal fade show" role="dialog">
+            <div className="modal-dialog" role="document">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title">Reorganizando as entidades</h5>
+                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div className="modal-body">
+                        <div className="row">
+                            <div className="col">
+                                <input type="text" className="form-control" placeholder="First name" />
+                            </div>
+                            <div className="col">
+                                <input type="text" className="form-control" placeholder="Last name" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="modal-footer">
+                        <button type="button" className="btn btn-primary">Save</button>
+                        <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={e => this.setState({ modal: undefined })}>Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        this.setState({ modal: modal })
     }
 
     private handleMouseIn(event: React.MouseEvent<HTMLDivElement>, token: Token) {
@@ -92,25 +127,55 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
         this.setState({ divHover: null })
     }
 
-    public render() {
+    private get nlp(): SpacyParse {
+        return this.props.nlp as SpacyParse;
+    }
+
+    private get colorsBackground(): { [key: string]: string } {
+        return Array.from(new Set(this.nlp.ents.map(ent => ent.label)))
+            .reduce((a: any, b: string) => (a[b] = colorHexRandom(), a), {})
+    }
+
+    private elementTypeEntity(ent: Entity[], token: Token) {
+        return ent.length && ent[0].end - 1 == token.i ? <span className="type-entity">{token.ent_type}</span> : ''
+    }
+
+    private init() {
         let key = 0
-        const el = []
-        for (const token of this.props.nlp.tokens) {
+        this.setState({ el: [] })
+
+        const typesEntity = this.colorsBackground
+
+        for (const token of this.nlp.tokens) {
             const classNameDiv = /\n/g.test(token.text) ? "tokens col-12" : "tokens col"
 
-            el.push(
+            const ent = this.nlp.ents.filter(ent => ent.start <= token.i && ent.end >= token.i && token.ent_type)
+
+            if (ent.length) {
+                console.log(token.text, token.ent_type, token.i, ent[0].start, ent[0].end)
+            }
+
+            this.state.el.push(
                 <div
                     key={key}
                     className={classNameDiv}
+                    style={{
+                        background: ent.length ? typesEntity[token.ent_type] : "none",
+                        color: ent.length ? contrast(typesEntity[token.ent_type]) : "none",
+                    }}
                     onMouseOut={e => this.handleMouseOut(e, token)}
                     onMouseMove={e => this.handleMouseIn(e, token)}
+                    onClick={e => this.handleClickModal(e, token)}
                 >
                     {/\n/g.test(token.text) ? <hr /> : token.text}
+                    {this.elementTypeEntity(ent, token)}
                 </div>
             )
             key++
         }
+    }
 
+    public render() {
         return (
             <div className="container">
                 <div className="row">
@@ -118,13 +183,15 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
                 </div>
                 {
                     !this.state.view ?
-                        <div className="row token-list">{el}</div> :
+                        <div className="row token-list">{this.state.el}</div> :
                         <div className="row mt-3">
                             <pre dangerouslySetInnerHTML={{ __html: this.state.html }} />
                         </div>
                 }
 
                 {this.state.divHover}
+                {this.state.modal}
+
             </div>
         )
     }

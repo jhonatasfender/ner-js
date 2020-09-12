@@ -83,6 +83,15 @@ pre {
     margin-bottom: 0;
 }
 
+.show {
+    display: block;
+}
+
+.modal {
+    color: black;
+    text-shadow: none;
+}
+
 .nav-masthead {
     .nav-link {
         padding: .25rem 0;
@@ -114,6 +123,7 @@ pre {
         font-weight: 700;
     }
     .tooltip-custom {
+        font-size: 0.9rem;
         color: #637d7c;
         position: absolute;
         z-index: 3;
@@ -121,23 +131,26 @@ pre {
         border-radius: 5px;
         padding: 5px;
     }
-}
-
-.tooltip-custom-over {
-    color: #637d7c;
-    background-color: #e5eaf5;
-    border-radius: 5px;
-}
-
-.tokens {
-    cursor: pointer;
-    margin: 0;
-    padding: 0 3.4px;
-    flex-grow: 0;
-}
-
-.token-list {
-    font-size: 2rem;
+    .tooltip-custom-over {
+        color: #637d7c !important;
+        background-color: #e5eaf5 !important;
+        border-radius: 5px;
+    }
+    .token-list {
+        font-size: 1.4rem;
+        text-shadow: none;
+        .tokens {
+            cursor: pointer;
+            margin: 0;
+            padding: 0 3.4px;
+            flex-grow: 0;
+            .type-entity {
+                font-size: 0.7rem;
+                font-weight: bold;
+                margin-left: 8px;
+            }
+        }
+    }
 }
 
 .text-vertically {
