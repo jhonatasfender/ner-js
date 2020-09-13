@@ -93,7 +93,14 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                                 <div className="col-2 arrow" onClick={this.handleClickEndMore}>&#8594;</div>
                             </div>
                             <div className="row mt-3">
-                                <input type="text" className="form-control" value={this.entity.label} />
+                                <input type="text" className="form-control" defaultValue={this.entity.label} onKeyUp={e => {
+                                    const el = e.target as HTMLInputElement
+                                    const entity = this.entity
+
+                                    el.value = el.value.toUpperCase()
+                                    entity.label = el.value
+                                    this.setState({ entity })
+                                }} />
                             </div>
                             <div className="row mt-4">
                                 <div className="col">
