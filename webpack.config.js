@@ -2,7 +2,8 @@ module.exports = {
     // change to .tsx if necessary
     entry: './src/app.tsx',
     output: {
-        filename: './bundle.js'
+        filename: './bundle.js',
+        publicPath: "/dist/",
     },
     resolve: {
         // changed from extensions: [".js", ".jsx"]
@@ -27,6 +28,27 @@ module.exports = {
                     'sass-loader',
                 ],
             },
+            { test: /\.(otf|gif|png|jpg|JPG)$/, loader: "url-loader" },
+            {
+                test: /\.woff(\?v=\d+\.\d+\.\d+)?$/,
+                loader: "url?limit=10000&mimetype=application/font-woff"
+            },
+            {
+                test: /\.woff2(\?v=\d+\.\d+\.\d+)?$/,
+                loader: "url?limit=10000&mimetype=application/font-woff"
+            },
+            {
+                test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+                loader: "url?limit=10000&mimetype=application/octet-stream"
+            },
+            {
+                test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+                loader: "file"
+            },
+            {
+                test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+                loader: "url?limit=10000&mimetype=image/svg+xml"
+            }
         ]
     },
     externals: {

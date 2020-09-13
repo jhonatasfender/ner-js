@@ -3,6 +3,7 @@ import * as $ from "jquery";
 import * as React from "react";
 import { colorHexRandom, contrast } from "../utility/colors-random";
 import { Entity, SpacyParse, Token } from "./main-interface";
+import { ModalSelectEntity } from "./modal";
 
 interface PreviewTokenInterface {
     divHover?: JSX.Element | null,
@@ -66,34 +67,11 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
         })
     }
 
-    private handleClickModal(event: React.MouseEvent<HTMLDivElement>, token: Token) {
-        const modal = <div className="modal fade show" role="dialog">
-            <div className="modal-dialog" role="document">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title">Reorganizando as entidades</h5>
-                        <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div className="modal-body">
-                        <div className="row">
-                            <div className="col">
-                                <input type="text" className="form-control" placeholder="First name" />
-                            </div>
-                            <div className="col">
-                                <input type="text" className="form-control" placeholder="Last name" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button type="button" className="btn btn-primary">Save</button>
-                        <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={e => this.setState({ modal: undefined })}>Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        this.setState({ modal: modal })
+
+    private handleClickModal(event: React.MouseEvent<HTMLDivElement>, token: Token, ent: Entity) {
+        this.setState({
+            modal: <ModalSelectEntity nlp={this.nlp} entity={ent} />
+        })
     }
 
     private handleMouseIn(event: React.MouseEvent<HTMLDivElement>, token: Token) {
@@ -165,7 +143,7 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
                     }}
                     onMouseOut={e => this.handleMouseOut(e, token)}
                     onMouseMove={e => this.handleMouseIn(e, token)}
-                    onClick={e => this.handleClickModal(e, token)}
+                    onClick={e => this.handleClickModal(e, token, ent[0])}
                 >
                     {/\n/g.test(token.text) ? <hr /> : token.text}
                     {this.elementTypeEntity(ent, token)}

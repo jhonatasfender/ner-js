@@ -1,5 +1,6 @@
 @import "~bootstrap";
 @import "highlight.js/scss/a11y-dark";
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
 * {
     user-select: none;
     -webkit-user-select: none;
@@ -149,6 +150,22 @@ pre {
                 font-weight: bold;
                 margin-left: 8px;
             }
+        }
+    }
+    .modal {
+        .arrow {
+            font-size: 3rem;
+            line-height: 20px;
+            padding: 0;
+            margin: 0;
+            max-width: 3rem;
+        }
+        .col {
+            padding: 0;
+            margin: 0;
+        }
+        input {
+            text-align: center;
         }
     }
 }
