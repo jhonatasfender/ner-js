@@ -20,17 +20,13 @@ interface PreviewTokenPropsInterface {
 export class PreviewToken extends React.Component<PreviewTokenPropsInterface | any, PreviewTokenInterface> {
     constructor(props: {}) {
         super(props);
-        this.state = {
-            view: false,
-            el: []
-        };
+
+        this.init()
 
         this.handleMouseOut = this.handleMouseOut.bind(this);
         this.handleMouseIn = this.handleMouseIn.bind(this);
         this.handleClickChangeView = this.handleClickChangeView.bind(this);
         this.handleClickModal = this.handleClickModal.bind(this);
-
-        this.init()
     }
 
     private centerInViewport(el: any) {
@@ -120,7 +116,11 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
 
     private init() {
         let key = 0
-        this.setState({ el: [] })
+
+        this.state = {
+            view: false,
+            el: []
+        };
 
         const typesEntity = this.colorsBackground
 

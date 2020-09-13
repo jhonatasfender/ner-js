@@ -81,16 +81,19 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                         </div>
                         <div className="modal-body">
                             <div className="row">
-                                <div className="col-2 arrow" onClick={this.handleClickStartMore}>&#8592;</div>
+                                <div className="col-2 arrow" onClick={this.handleClickStartLess}>&#8592;</div>
                                 <div className="col">
-                                    <input type="text" className="form-control" disabled value={this.state.entity.start} />
+                                    <input type="text" className="form-control" disabled value={this.entity.start} />
                                 </div>
-                                <div className="col-2 arrow" onClick={this.handleClickStartLess}>&#8594;</div>
+                                <div className="col-2 arrow" onClick={this.handleClickStartMore}>&#8594;</div>
                                 <div className="col-2 arrow" onClick={this.handleClickEndLess}>&#8592;</div>
                                 <div className="col">
-                                    <input type="text" className="form-control" disabled value={this.state.entity.end - 1} />
+                                    <input type="text" className="form-control" disabled value={this.entity.end - 1} />
                                 </div>
                                 <div className="col-2 arrow" onClick={this.handleClickEndMore}>&#8594;</div>
+                            </div>
+                            <div className="row mt-3">
+                                <input type="text" className="form-control" value={this.entity.label} />
                             </div>
                             <div className="row mt-4">
                                 <div className="col">
