@@ -9,7 +9,9 @@ interface ModalSelectEntityInterface {
 
 interface ModalSelectEntityPropsInterface {
     entity: Entity,
-    nlp: SpacyParse
+    nlp: SpacyParse,
+    onClickHandlerClose: () => void
+    onClickHandlerSave: (entity: Entity) => void
 }
 
 export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInterface | any, ModalSelectEntityInterface> {
@@ -28,31 +30,43 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
     }
 
     private handleClickStartLess(): void {
-        let { entity, textEntity } = this.state
+        let { entity } = this.state
         entity.start--
-        textEntity = this.getSenteceOfPhrase()
-        this.setState({ entity, textEntity })
+        entity.text = this.getSenteceOfPhrase()
+        entity.start_char = this.nlp.doc.text.indexOf(entity.text)
+
+        this.setState({ entity, textEntity: entity.text })
+        this.nlp.tokens[entity.start].ent_type = entity.label
     }
 
     private handleClickStartMore(): void {
-        let { entity, textEntity } = this.state
+        let { entity } = this.state
+        this.nlp.tokens[entity.start].ent_type = ""
         entity.start++
-        textEntity = this.getSenteceOfPhrase()
-        this.setState({ entity, textEntity })
+        entity.text = this.getSenteceOfPhrase()
+        entity.start_char = this.nlp.doc.text.indexOf(entity.text)
+
+        this.setState({ entity, textEntity: entity.text })
     }
 
     private handleClickEndLess(): void {
-        let { entity, textEntity } = this.state
+        let { entity } = this.state
+        this.nlp.tokens[entity.end - 1].ent_type = ""
         entity.end--
-        textEntity = this.getSenteceOfPhrase()
-        this.setState({ entity, textEntity })
+        entity.text = this.getSenteceOfPhrase()
+        entity.end_char = this.nlp.doc.text.indexOf(entity.text)
+
+        this.setState({ entity, textEntity: entity.text })
     }
 
     private handleClickEndMore(): void {
-        let { entity, textEntity } = this.state
+        let { entity } = this.state
         entity.end++
-        textEntity = this.getSenteceOfPhrase()
-        this.setState({ entity, textEntity })
+        entity.text = this.getSenteceOfPhrase()
+        entity.end_char = this.nlp.doc.text.indexOf(entity.text) + entity.text.length
+
+        this.setState({ entity, textEntity: entity.text })
+        this.nlp.tokens[entity.end - 1].ent_type = entity.label
     }
 
     private get nlp(): SpacyParse {
@@ -68,6 +82,17 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
         return words.map(x => x.text_with_ws).join('')
     }
 
+    private keyUpHandleLabelEntity(e: React.KeyboardEvent<HTMLInputElement>) {
+        const el = e.target as HTMLInputElement
+        const entity = this.entity
+
+        el.value = el.value.toUpperCase().replace(/[\s/\\{}()+*.]/g, '-')
+        entity.label = el.value
+        this.setState({ entity })
+        this.nlp.tokens[entity.start].ent_type = entity.label
+        this.nlp.tokens[entity.end - 1].ent_type = entity.label
+    }
+
     public render() {
         return (
             <div className="modal fade show" role="dialog">
@@ -75,7 +100,7 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title">Reorganizando as entidades</h5>
-                            <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                            <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={this.props.onClickHandlerClose}>
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
@@ -93,14 +118,7 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                                 <div className="col-2 arrow" onClick={this.handleClickEndMore}>&#8594;</div>
                             </div>
                             <div className="row mt-3">
-                                <input type="text" className="form-control" defaultValue={this.entity.label} onKeyUp={e => {
-                                    const el = e.target as HTMLInputElement
-                                    const entity = this.entity
-
-                                    el.value = el.value.toUpperCase()
-                                    entity.label = el.value
-                                    this.setState({ entity })
-                                }} />
+                                <input type="text" className="form-control" defaultValue={this.entity.label} onKeyUp={e => this.keyUpHandleLabelEntity(e)} />
                             </div>
                             <div className="row mt-4">
                                 <div className="col">
@@ -109,8 +127,8 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-primary">Save</button>
-                            <button type="button" className="btn btn-secondary" data-dismiss="modal" >Close</button>
+                            <button type="button" className="btn btn-primary" onClick={() => { this.props.onClickHandlerSave(this.entity) }}>Save</button>
+                            <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={this.props.onClickHandlerClose}>Close</button>
                         </div>
                     </div>
                 </div>

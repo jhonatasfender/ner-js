@@ -8,23 +8,55 @@ export interface SpacyParse {
     tokens: Token[];
 }
 
-export interface Entity {
-    start: number,
-    end: number,
-    label: string,
-    text: string,
+
+export interface SummaryEntity {
+    id: number;
+    start: number;
+    end: number;
+    label: string;
+    end_char: number;
+    start_char: number;
+    text: string;
 }
 
-export interface Token {
+export interface Entity {
+    id: number;
+    start: number;
+    end: number;
+    label: string;
+    label_number: number;
+    text: string;
+    conjuncts: any[];
+    end_char: number;
+    ent_id: number;
+    ent_id_: string;
+    ents: any[];
+    kb_id: number;
+    kb_id_: string;
+    label_: string;
+    lemma_: string;
+    lower_: string;
+    n_lefts: number;
+    n_rights: number;
+    orth_: string;
+    root: Root;
+    sentiment: number;
+    start_char: number;
+    string: string;
+    text_with_ws: string;
+    upper_: string;
+}
+
+export interface Root {
     sent: Sent;
     tensor: string[];
     text: string;
     text_with_ws: string;
     whitespace: string;
     orth: string;
-    head: Head;
-    left_edge: Head;
-    right_edge: Head;
+    head: Token;
+    left_edge: Token;
+    right_edge: Token;
     i: number;
     ent_type: string;
     ent_iob: string;
@@ -69,16 +101,17 @@ export interface Token {
     position_end_text: number;
 }
 
-export interface Head {
+export interface Token {
+    id: number,
     sent: Sent;
     tensor: string[];
     text: string;
     text_with_ws: string;
     whitespace: string;
     orth: string;
-    head: Cats;
-    left_edge: Cats;
-    right_edge: Cats;
+    head: Token;
+    left_edge: Token;
+    right_edge: Token;
     i: number;
     ent_type: string;
     ent_iob: string;

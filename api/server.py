@@ -1,14 +1,15 @@
 # coding: utf8
 from __future__ import unicode_literals
+
 import json
-from numpyencoder import NumpyEncoder
+import random
 
 import hug
-from hug_middleware_cors import CORSMiddleware
-import waitress
-import spacy
 import plac
-
+import spacy
+import waitress
+from hug_middleware_cors import CORSMiddleware
+from numpyencoder import NumpyEncoder
 
 MODELS = {}
 
@@ -36,9 +37,10 @@ def load_model(model):
     MODELS[model] = spacy.load(model)
 
 
-def docToDict(token: spacy.tokens.Token, again: bool = True):
+def docToDict(token: spacy.tokens.Token, again: bool = True, unique: int = 0):
     try:
         return {
+            "id": unique,
             "sent": {
                 "start": token.sent.start,
                 "end": token.sent.end
@@ -112,6 +114,47 @@ def docToDict(token: spacy.tokens.Token, again: bool = True):
         return {}
 
 
+def uniqueid():
+    seed = random.getrandbits(32)
+    while True:
+        yield seed
+        seed += 1
+
+
+def entity(ent: spacy.tokens.span.Span, id: int):
+    return {
+        "id": id,
+        "start": ent.start,
+        "end": ent.end,
+        "label": ent.label_,
+        "text": ent.text,
+        #######################
+        "conjuncts": ent.conjuncts,
+        "end": ent.end,
+        "end_char": ent.end_char,
+        "ent_id": ent.ent_id,
+        "ent_id_": ent.ent_id_,
+        "ents": ent.ents,
+        "kb_id": ent.kb_id,
+        "kb_id_": ent.kb_id_,
+        "label_number": ent.label,
+        "label_": ent.label_,
+        "lemma_": ent.lemma_,
+        "lower_": ent.lower_,
+        "n_lefts": ent.n_lefts,
+        "n_rights": ent.n_rights,
+        "orth_": ent.orth_,
+        "root": docToDict(ent.root),
+        "sentiment": ent.sentiment,
+        "start": ent.start,
+        "start_char": ent.start_char,
+        "string": ent.string,
+        "text": ent.text,
+        "text_with_ws": ent.text_with_ws,
+        "upper_": ent.upper_,
+    }
+
+
 def doc2json(doc: spacy.tokens.Doc, model: str):
     json_doc = {
         "text": doc.text,
@@ -122,14 +165,13 @@ def doc2json(doc: spacy.tokens.Doc, model: str):
         # "is_nered": doc.is_nered,
         "is_sentenced": doc.is_sentenced,
     }
+
+    unique_sequence = uniqueid()
+
     ents = [
-        {
-            "start": ent.start,
-            "end": ent.end,
-            "label": ent.label_,
-            "text": ent.text,
-        } for ent in doc.ents
+        entity(ent, next(unique_sequence)) for ent in doc.ents
     ]
+
     if doc.is_sentenced:
         sents = [{"start": sent.start, "end": sent.end} for sent in doc.sents]
     else:
@@ -141,7 +183,8 @@ def doc2json(doc: spacy.tokens.Doc, model: str):
     else:
         noun_chunks = []
 
-    tokens = [docToDict(token) for token in doc]
+    unique_token = uniqueid()
+    tokens = [docToDict(token, unique=next(unique_token)) for token in doc]
     return {
         "model": model,
         "doc": json_doc,

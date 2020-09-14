@@ -2,7 +2,7 @@ import hljs from 'highlight.js';
 import * as $ from "jquery";
 import * as React from "react";
 import { colorHexRandom, contrast } from "../utility/colors-random";
-import { Entity, SpacyParse, Token } from "./main-interface";
+import { Entity, SpacyParse, SummaryEntity, Token } from "./main-interface";
 import { ModalSelectEntity } from "./modal";
 
 interface PreviewTokenInterface {
@@ -18,6 +18,8 @@ interface PreviewTokenPropsInterface {
 }
 
 export class PreviewToken extends React.Component<PreviewTokenPropsInterface | any, PreviewTokenInterface> {
+    private summaryEntity: SummaryEntity[] = [];
+
     constructor(props: {}) {
         super(props);
 
@@ -51,22 +53,56 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
     }
 
     private getTextWithProperties() {
-        return `\n\t\t"${this.nlp.doc.text}",\n\t\t{\n\t\t\t'entities': [\n\t\t\t\t(7, 17, "DATE")\n\t\t\t]\n\t\t}`
+        let entities = ""
+        for (const summary of this.summaryEntity) {
+            const coment = `# start: ${summary.start} | end: ${summary.end} | phrase: ${summary.text}`
+            entities += `\n\t\t\t\t(${summary.start_char}, ${summary.end_char - 1}, "${summary.label}"), ${coment}\n\t\t\t`
+        }
+        return `\n\t\t"""${this.nlp.doc.text}""",\n\t\t{\n\t\t\t'entities': [${entities}]\n\t\t}`
     }
 
     private handleClickChangeView() {
-        const highlight = hljs.highlightAuto(`TRAIN_DATA = [\n\t(${this.getTextWithProperties()}\n\t)\n]`)
-        console.log(highlight)
+        const highlight = hljs.highlightAuto(`TRAIN_DATA = [\n\t(${this.getTextWithProperties()}\n\t)\n]`, ["python"])
         this.setState({
             view: !this.state.view,
             html: highlight.value
         })
     }
 
+    public entityToSummaryEntity(entity: Entity): SummaryEntity {
+        return {
+            id: entity.id,
+            start: entity.start,
+            end: entity.end,
+            label: entity.label,
+            end_char: entity.end_char,
+            start_char: entity.start_char,
+            text: entity.text
+        }
+    }
 
-    private handleClickModal(event: React.MouseEvent<HTMLDivElement>, token: Token, ent: Entity) {
+    private clickHandlerSave(entity: Entity) {
+        const convert = this.entityToSummaryEntity(entity)
+
+        this.summaryEntity.forEach((summary: SummaryEntity, key: number) => {
+            if (summary.id == entity.id)
+                this.summaryEntity[key] = convert
+        })
+
         this.setState({
-            modal: <ModalSelectEntity nlp={this.nlp} entity={ent} />
+            el: this.creatingTokenElements(),
+            modal: undefined
+        })
+    }
+
+    private handleClickModal(event: React.MouseEvent<HTMLDivElement>, token: Token, ent: Entity | undefined) {
+        this.setState({
+            modal: <ModalSelectEntity
+                nlp={this.nlp}
+                entity={ent}
+                onClickHandlerClose={() => this.setState({ modal: undefined })}
+                onClickHandlerSave={(e: Entity) => this.clickHandlerSave(e)}
+            />
         })
     }
 
@@ -110,46 +146,51 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
             .reduce((a: any, b: string) => (a[b] = colorHexRandom(), a), {})
     }
 
-    private elementTypeEntity(ent: Entity[], token: Token) {
-        return ent.length && ent[0].end - 1 == token.i ? <span className="type-entity">{token.ent_type}</span> : ''
+    private elementTypeEntity(ent: Entity | undefined, token: Token) {
+        return ent && ent.end - 1 == token.i ? <span className="type-entity">{token.ent_type}</span> : ''
     }
 
-    private init() {
-        let key = 0
-
-        this.state = {
-            view: false,
-            el: []
-        };
-
+    private creatingTokenElements(): JSX.Element[] {
         const typesEntity = this.colorsBackground
+        const el: JSX.Element[] = []
 
         for (const token of this.nlp.tokens) {
             const classNameDiv = /\n/g.test(token.text) ? "tokens col-12" : "tokens col"
+            const ent = this.nlp.ents.filter(ent => ent.start <= token.i && ent.end >= token.i && token.ent_type).shift()
 
-            const ent = this.nlp.ents.filter(ent => ent.start <= token.i && ent.end >= token.i && token.ent_type)
-
-            if (ent.length) {
-                console.log(token.text, token.ent_type, token.i, ent[0].start, ent[0].end)
-            }
-
-            this.state.el.push(
+            el.push(
                 <div
-                    key={key}
+                    key={token.id}
                     className={classNameDiv}
                     style={{
-                        background: ent.length ? typesEntity[token.ent_type] : "none",
-                        color: ent.length ? contrast(typesEntity[token.ent_type]) : "none",
+                        background: ent ? typesEntity[token.ent_type] : "none",
+                        color: ent ? contrast(typesEntity[token.ent_type]) : "#fff",
+                        borderTopLeftRadius: ent?.start == token.i ? '6px' : 0,
+                        borderBottomLeftRadius: ent?.start == token.i ? '6px' : 0,
+                        borderTopRightRadius: ent && ent.end - 1 == token.i ? '6px' : 0,
+                        borderBottomRightRadius: ent && ent.end - 1 == token.i ? '6px' : 0,
                     }}
                     onMouseOut={e => this.handleMouseOut(e, token)}
                     onMouseMove={e => this.handleMouseIn(e, token)}
-                    onClick={e => this.handleClickModal(e, token, ent[0])}
+                    onClick={e => this.handleClickModal(e, token, ent)}
                 >
                     {/\n/g.test(token.text) ? <hr /> : token.text}
                     {this.elementTypeEntity(ent, token)}
                 </div>
             )
-            key++
+        }
+        return el
+    }
+
+    private init() {
+
+        this.state = {
+            view: false,
+            el: this.creatingTokenElements()
+        };
+
+        for (const entity of this.nlp.ents) {
+            this.summaryEntity.push(this.entityToSummaryEntity(entity))
         }
     }
 

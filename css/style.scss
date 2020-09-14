@@ -140,6 +140,7 @@ pre {
     .token-list {
         font-size: 1.4rem;
         text-shadow: none;
+        margin-top: 14px;
         .tokens {
             cursor: pointer;
             margin: 0;
@@ -149,6 +150,7 @@ pre {
                 font-size: 0.7rem;
                 font-weight: bold;
                 margin-left: 8px;
+                white-space: nowrap
             }
         }
     }
