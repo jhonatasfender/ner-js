@@ -102,7 +102,20 @@ export class PreviewToken extends React.Component<PreviewTokenPropsInterface | a
                 entity={ent}
                 onClickHandlerClose={() => this.setState({ modal: undefined })}
                 onClickHandlerSave={(e: Entity) => this.clickHandlerSave(e)}
+                onClickHandlerDelete={(e: Entity) => this.onClickHandlerDelete(e)}
             />
+        })
+    }
+
+    private onClickHandlerDelete(entity: Entity): void {
+        this.nlp.ents.forEach((ent: Entity, key: number) => {
+            if (ent.id === entity.id)
+                delete this.nlp.ents[key]
+        })
+        
+        this.setState({
+            el: this.creatingTokenElements(),
+            modal: undefined
         })
     }
 

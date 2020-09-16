@@ -12,6 +12,7 @@ interface ModalSelectEntityPropsInterface {
     nlp: SpacyParse,
     onClickHandlerClose: () => void
     onClickHandlerSave: (entity: Entity) => void
+    onClickHandlerDelete: (entity: Entity) => void
 }
 
 export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInterface | any, ModalSelectEntityInterface> {
@@ -127,6 +128,7 @@ export class ModalSelectEntity extends React.Component<ModalSelectEntityPropsInt
                             </div>
                         </div>
                         <div className="modal-footer">
+                            <button type="button" className="btn btn-danger" onClick={() => { this.props.onClickHandlerDelete(this.entity) }}>Delete</button>
                             <button type="button" className="btn btn-primary" onClick={() => { this.props.onClickHandlerSave(this.entity) }}>Save</button>
                             <button type="button" className="btn btn-secondary" data-dismiss="modal" onClick={this.props.onClickHandlerClose}>Close</button>
                         </div>
